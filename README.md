@@ -25,3 +25,6 @@ open help menu with this:
 ```bash
 uv run main.py --help
 ```
+
+## License
+Use as your will as this is published under MIT LICENSE.
