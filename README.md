@@ -4,9 +4,8 @@ A lightweight, hexagonal clean-architecture CLI tool for Cloudflare R2, built fo
 
 ## Features
 
-* Secure credential management utilizing your OS native keyring alongside standard local config.
-* Clean separation of concerns via Hexagonal Clean Architecture patterns.
-* Fast dependency management and packaging powered by `uv`.
+- Save and use your r2 credentials.
+- Manage files on your bucket (bulk uploading, deleting, listing).
 
 ## Installation
 
@@ -18,18 +17,11 @@ cd r2c
 uv sync
 
 ```
-
-## Configuration
-
-R2C stores your non-sensitive metadata (such as account names, account IDs, bucket names, and public access keys) in a plaintext JSON configuration file at `~/.config/r2c/config.json`.
-
-Sensitive secrets (like your secret access keys) are safely isolated within your operating system's native secure keyring service under the service name `r2c`.
-
 ## Usage
 
-Run the CLI using `uv run`:
+Run the CLI using `uv run main.py` for now._I will setup packaging later in CICD when I'm free._
 
+open help menu with this:
 ```bash
-uv run r2c --help
-
+uv run main.py --help
 ```
