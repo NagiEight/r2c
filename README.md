@@ -1,6 +1,6 @@
 # R2C
 
-A lightweight, hexagonal clean-architecture CLI tool for Cloudflare R2, built for speed and simplicity.
+A lightweight, CLI tool for Cloudflare R2, built for speed and simplicity.
 
 ## Features
 
