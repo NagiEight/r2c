@@ -1,0 +1,26 @@
+[project]
+name = "r2c"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Nagi Eight", email = "lowanagi08@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "aioboto3>=15.5.0",
+    "async-typer>=0.27.2",
+    "httpx>=0.28.1",
+    "httpx-auth>=0.23.1",
+    "keyring>=25.7.0",
+    "python-dotenv>=1.2.3",
+    "typer>=0.27.2",
+    "types-aioboto3>=15.5.0",
+]
+
+[project.scripts]
+r2 = "r2:main"
+
+[build-system]
+requires = ["uv_build>=0.12.5,<0.13.0"]
+build-backend = "uv_build"

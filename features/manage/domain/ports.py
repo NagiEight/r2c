@@ -1,0 +1,23 @@
+from typing import Protocol
+
+from features.manage.domain.entities import R2ObjectSummary
+
+
+class R2AdapterPort(Protocol):
+    async def upload(self, key: str, data: bytes, content_type: str) -> None:
+        ...
+
+    async def fetch(self, key: str) -> bytes:
+        ...
+
+    async def delete(self, key: str) -> None:
+        ...
+
+    async def delete_many(self, keys: list[str]) -> None:
+        ...
+
+    async def list_keys(self, prefix: str = "") -> list[str]:
+        ...
+    async def list_objects(self, prefix: str = "") -> list[R2ObjectSummary]:
+            ...
+    async def copy(self, source_key: str, destination_key: str) -> None: ...
