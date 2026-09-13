@@ -30,11 +30,9 @@ uv run main.py --help
 Use as your will as this is published under MIT LICENSE.
 
 
-## detailed features
+## Experimental warning
+This project is an early-stage prototype provided strictly "as is." It is experimental code that may break, or behave unpredictably. Use it at your own risk and please do not use it on production storage or critical buckets
 
-Upload: Upload single files or entire directories recursively.
-Fetch: Download objects from R2 straight to a local file.
-Delete: Remove objects by explicit key or keyword pattern.
-List: View bucket contents via list-objects or ls.
-Rename: Quick remote object renaming (copy + delete).
-Account: Manage multi-account/profile configurations easily.
+## Roadmap
+I'm planning on adding race conditions, rate limits, caching, CI/CD, test suite. After that, I will remove the experimental warning.
+Note: I'm in a middle of moving out, and I'll be busy for a while. Don't expect production readiness anytime soon.
