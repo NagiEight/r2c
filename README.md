@@ -5,7 +5,7 @@ A lightweight, CLI tool for Cloudflare R2, built for speed and simplicity.
 ## Features
 
 - Save and use your r2 credentials.
-- Manage files on your bucket (bulk uploading, deleting, listing).
+- Manage files on your bucket (bulk uploading, deleting, listing, renaming, fetching).
 
 ## Installation
 
@@ -28,3 +28,13 @@ uv run main.py --help
 
 ## License
 Use as your will as this is published under MIT LICENSE.
+
+
+## detailed features
+
+Upload: Upload single files or entire directories recursively.
+Fetch: Download objects from R2 straight to a local file.
+Delete: Remove objects by explicit key or keyword pattern.
+List: View bucket contents via list-objects or ls.
+Rename: Quick remote object renaming (copy + delete).
+Account: Manage multi-account/profile configurations easily.

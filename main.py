@@ -1,6 +1,5 @@
 import mimetypes
 from pathlib import Path
-from socket import timeout
 from typing import Annotated
 
 import httpx
@@ -22,7 +21,12 @@ from features.auth.app.use_cases import (
     SelectActiveAccountUseCase,
 )
 from features.auth.infrastructure.adapters import KeyringAccountRepository
-from features.manage.app.use_cases import ManageAssetUseCase
+from features.manage.app.use_cases import (
+    DeleteByPatternUseCase,
+    DeleteKeysUseCase,
+    RenameAssetUseCase,
+    UploadDirectoryUseCase,
+)
 from features.manage.domain.entities import R2HttpConfig
 from features.manage.infrastructure.adapter import HTTPR2Adapter
 
@@ -89,7 +93,7 @@ async def upload(
             )
             for f in files:
                 rel_path = f.relative_to(path).as_posix()
-                dest_key = f"{prefix.strip('/')}/{rel_path}" if prefix else rel_path
+                dest_key = f"{prefix.strip('/')}/{rel_path}".lstrip("/") if prefix else rel_path
                 typer.echo(f"  - {f} -> {dest_key}")
         else:
             remote_key = prefix or path.name
@@ -98,45 +102,21 @@ async def upload(
 
     async with get_adapter() as adapter:
         if path.is_dir():
-            files = [p for p in path.rglob("*") if p.is_file()]
-            succeeded, failed = 0, 0
+            use_case = UploadDirectoryUseCase(r2_adapter=adapter)
+            try:
+                result = await use_case.execute(source_dir=path, remote_prefix=prefix)
+            except Exception as err:
+                typer.secho(f"Upload directory failed: {err}", fg=typer.colors.RED, err=True)
+                raise typer.Exit(code=1)
 
-            with Progress(
-                SpinnerColumn(),
-                TextColumn("[progress.description]{task.description}"),
-                BarColumn(),
-                MofNCompleteColumn(),
-                TimeRemainingColumn(),
-                console=console,
-            ) as progress:
-                task = progress.add_task("[cyan]Uploading files...", total=len(files))
+            for failed_file, err in result.failed:
+                typer.secho(f"Failed to upload {failed_file}: {err}", fg=typer.colors.RED, err=True)
 
-                for file in files:
-                    rel_path = file.relative_to(path).as_posix()
-                    dest_key = f"{prefix.strip('/')}/{rel_path}" if prefix else rel_path
-                    content_type, _ = mimetypes.guess_type(file)
-
-                    try:
-                        await adapter.upload(
-                            dest_key, file.read_bytes(), content_type or "application/octet-stream"
-                        )
-                        succeeded += 1
-                    except httpx.HTTPStatusError as err:
-                        failed += 1
-                        progress.console.print(
-                            f"[red]Failed to upload {file}: {_format_http_error(err)}[/red]"
-                        )
-                    except Exception as err:
-                        failed += 1
-                        progress.console.print(
-                            f"[red]Failed to upload {file}: {type(err).__name__} - {err}[/red]"
-                        )
-                    finally:
-                        progress.advance(task)
-
+            succeeded_count = len(result.succeeded)
+            failed_count = len(result.failed)
             typer.secho(
-                f"Uploaded directory '{path}': {succeeded} succeeded, {failed} failed.",
-                fg=typer.colors.GREEN if not failed else typer.colors.YELLOW,
+                f"Uploaded directory '{path}': {succeeded_count} succeeded, {failed_count} failed.",
+                fg=typer.colors.GREEN if not failed_count else typer.colors.YELLOW,
             )
         else:
             remote_key = prefix or path.name
@@ -215,16 +195,16 @@ async def delete(
         raise typer.Exit(code=1)
 
     async with get_adapter() as adapter:
-        use_case = ManageAssetUseCase(r2_adapter=adapter)
-
         if contains:
-            result = await use_case.delete_by_pattern(
+            use_case = DeleteByPatternUseCase(r2_adapter=adapter)
+            result = await use_case.execute(
                 pattern=contains,
                 prefix=prefix,
                 case_sensitive=case_sensitive,
             )
         else:
-            result = await use_case.delete_keys(keys or [])
+            use_case = DeleteKeysUseCase(r2_adapter=adapter)
+            result = await use_case.execute(keys=keys or [])
 
         if not result.succeeded and not result.failed:
             typer.secho("No matching objects found.", fg=typer.colors.YELLOW)
@@ -399,22 +379,16 @@ async def rename(
         return
 
     async with get_adapter() as adapter:
-        with Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            BarColumn(),
-            console=console,
-        ) as progress:
-            task = progress.add_task(f"[cyan]Renaming '{source}'...", total=2)
-            try:
-                await adapter.copy(source_key=source, destination_key=destination)
-                progress.advance(task)
-                await adapter.delete(source)
-                progress.advance(task)
-                typer.secho(f"Successfully renamed {source} -> {destination}", fg=typer.colors.GREEN)
-            except httpx.HTTPStatusError as err:
-                typer.secho(f"\nRename failed: {_format_http_error(err)}", fg=typer.colors.RED, err=True)
-                raise typer.Exit(code=1)
+        use_case = RenameAssetUseCase(r2_adapter=adapter)
+        try:
+            await use_case.execute(source_key=source, destination_key=destination)
+            typer.secho(f"Successfully renamed {source} -> {destination}", fg=typer.colors.GREEN)
+        except httpx.HTTPStatusError as err:
+            typer.secho(f"\nRename failed: {_format_http_error(err)}", fg=typer.colors.RED, err=True)
+            raise typer.Exit(code=1)
+        except Exception as err:
+            typer.secho(f"\nRename failed: {err}", fg=typer.colors.RED, err=True)
+            raise typer.Exit(code=1)
 
 
 if __name__ == "__main__":

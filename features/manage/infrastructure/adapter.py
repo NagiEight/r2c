@@ -70,7 +70,6 @@ class HTTPR2Adapter(R2AdapterPort):
                 headers[k.lower()] = v
 
         request = AWSRequest(method=method, url=url, data=body, headers=headers)
-        # Pin the exact signed path — do not let the signer re-derive it.
         request.auth_path = path
         S3SigV4Auth(self._credentials, "s3", "auto").add_auth(request)
 
