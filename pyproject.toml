@@ -16,6 +16,7 @@ dependencies = [
     "python-dotenv>=1.2.3",
     "typer>=0.27.2",
     "types-aioboto3>=15.5.0",
+    "rich>=15.0.0"
 ]
 
 [project.scripts]
